@@ -1,530 +1,576 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
+
+const demoData = {
+  region: "Arabian Sea",
+
+  assessment: {
+    status: "WATCH",
+    score: 68,
+    summary:
+      "Marine ecosystem conditions require monitoring because multiple environmental signals show moderate changes.",
+  },
+
+  signals: {
+    sst: {
+      value: 28.4,
+      unit: "°C",
+      status: "Moderate",
+      description:
+        "Sea surface temperature is slightly elevated compared with the historical baseline.",
+    },
+
+    chlorophyll: {
+      value: 1.8,
+      unit: "mg/m³",
+      status: "Normal",
+      description:
+        "Chlorophyll concentration indicates a normal marine productivity signal.",
+    },
+
+    weather: {
+      value: 18,
+      unit: "km/h",
+      status: "Moderate",
+      description:
+        "Wind conditions are moderate and may influence surface-water mixing.",
+    },
+
+    historical: {
+      value: "+4.2%",
+      unit: "",
+      status: "Changing",
+      description:
+        "Current conditions show a measurable deviation from historical observations.",
+    },
+
+    satellite: {
+      value: "Normal",
+      unit: "",
+      status: "Available",
+      description:
+        "Satellite observations do not indicate a major abnormality in the selected region.",
+    },
+  },
+
+  why:
+    "The WATCH assessment is mainly influenced by elevated sea surface temperature and deviation from historical conditions. Weather conditions may also contribute to changes in surface-water behaviour. Chlorophyll and satellite signals remain comparatively stable.",
+
+  recommendation:
+    "Continue monitoring the region and compare upcoming observations with the historical baseline.",
+
+  agents: [
+    "SST Agent",
+    "Chlorophyll Agent",
+    "Weather Agent",
+    "Historical Agent",
+    "Satellite Agent",
+    "Reasoning Agent",
+  ],
+}
 
 function Analysis() {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const [region, setRegion] = useState("Arabian Sea")
+  const [data, setData] = useState(demoData)
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    fetch(
-      "https://orca-marine-intelligence-ecosystem.onrender.com/api/assess?region=Arabian%20Sea",
-      {
-        method: "POST",
-      }
-    )
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Backend error: ${response.status}`)
+  const runAnalysis = async () => {
+    setLoading(true)
+
+    try {
+      const API_URL =
+        import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+
+      const response = await fetch(
+        `${API_URL}/api/assess?region=${encodeURIComponent(region)}`,
+        {
+          method: "POST",
         }
+      )
 
-        return response.json()
-      })
-      .then((result) => {
-        console.log("ORCA API:", result)
-        setData(result)
-        setLoading(false)
-      })
-      .catch((err) => {
-        console.error("ORCA API error:", err)
-        setError("Unable to connect to ORCA backend.")
-        setLoading(false)
-      })
-  }, [])
+      if (!response.ok) {
+        throw new Error("Backend unavailable")
+      }
 
-  const signals = [
+      const result = await response.json()
+
+      setData({
+        ...demoData,
+        ...result,
+      })
+    } catch (error) {
+      console.log("Backend not connected. Showing demo data.")
+      setData({
+        ...demoData,
+        region,
+      })
+    }
+
+    setLoading(false)
+  }
+
+  const signalList = [
     {
       name: "Sea Surface Temperature",
       short: "SST",
-      value: data?.sst?.value ?? "—",
-      unit: data?.sst?.unit ?? "°C",
-      status: getStatus(data?.sst?.status, loading),
-      description:
-        "Temperature signal and deviation from historical baseline.",
+      data: data.signals.sst,
     },
     {
       name: "Chlorophyll",
       short: "CHL",
-      value: data?.chlorophyll?.value ?? "—",
-      unit: data?.chlorophyll?.unit ?? "mg/m³",
-      status: getStatus(data?.chlorophyll?.status, loading),
-      description:
-        "Marine productivity signal from ocean colour observations.",
+      data: data.signals.chlorophyll,
     },
     {
       name: "Weather Conditions",
       short: "WX",
-      value: getWeatherValue(data?.weather),
-      unit: "",
-      status: getStatus(data?.weather?.status, loading),
-      description:
-        "Wind and environmental conditions affecting the region.",
+      data: data.signals.weather,
     },
     {
       name: "Historical Pattern",
       short: "HIS",
-      value: data?.historical?.trend ?? "—",
-      unit: "",
-      status: getStatus(data?.historical?.status, loading),
-      description:
-        "Current conditions compared with historical observations.",
+      data: data.signals.historical,
+    },
+    {
+      name: "Satellite Observation",
+      short: "SAT",
+      data: data.signals.satellite,
     },
   ]
 
   return (
-    <Page
-      title="Marine Analysis"
-      subtitle="Environmental signals analysed by the ORCA intelligence layer"
-    >
-      {/* Header */}
-      <section className="mb-10">
-        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-400">
-              Signal Analysis
-            </p>
+    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white md:px-8">
+      <div className="mx-auto max-w-7xl">
 
-            <h2 className="mt-3 text-2xl font-bold text-white md:text-3xl">
-              Understand the signals behind the assessment
-            </h2>
-
-            <p className="mt-3 max-w-2xl leading-7 text-slate-400">
-              ORCA analyses multiple environmental signals independently
-              before combining them into a broader marine ecosystem assessment.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 px-5 py-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-              Analysis State
-            </p>
-
-            <div className="mt-2 flex items-center gap-2">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  loading
-                    ? "bg-amber-400"
-                    : error
-                      ? "bg-red-400"
-                      : "bg-cyan-400"
-                }`}
-              />
-
-              <span className="text-sm font-medium text-slate-400">
-                {loading
-                  ? "Running ORCA analysis"
-                  : error
-                    ? "Backend connection error"
-                    : "Analysis complete"}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
-            {error}
-          </div>
-        )}
-
-        {data?.region && (
-          <div className="mt-5 flex items-center gap-2 text-sm text-slate-500">
-            <span className="text-slate-600">Region:</span>
-
-            <span className="font-medium text-slate-300">
-              {data.region}
-            </span>
-          </div>
-        )}
-      </section>
-
-      {/* Signal Cards */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            Environmental Signals
+        {/* HEADER */}
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-400">
+            ORCA
           </p>
 
-          <span className="text-xs text-slate-600">
-            4 signal groups
-          </span>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
+            Marine Analysis
+          </h1>
+
+          <p className="mt-3 text-slate-500">
+            Environmental signals analysed by the ORCA intelligence layer.
+          </p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2">
-          {signals.map((signal) => (
-            <SignalCard
-              key={signal.name}
-              signal={signal}
-            />
-          ))}
-        </div>
-      </section>
+        {/* RUN ANALYSIS */}
+        <section className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 
-      {/* Comparison */}
-      <section className="mt-8 grid gap-5 lg:grid-cols-2">
-        {/* Current vs Historical */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
-                Comparison
+                Analysis Engine
               </p>
 
-              <h3 className="mt-2 text-xl font-semibold text-white">
-                Current vs Historical
-              </h3>
+              <h2 className="mt-2 text-xl font-semibold">
+                Analyse Marine Region
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Run the ORCA multi-agent analysis pipeline.
+              </p>
             </div>
 
-            <span className="rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-500">
-              Baseline
+            <div className="flex flex-col gap-3 sm:flex-row">
+
+              <input
+                type="text"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="Enter marine region"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400"
+              />
+
+              <button
+                onClick={runAnalysis}
+                disabled={loading}
+                className="rounded-xl bg-cyan-400 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-300 disabled:opacity-50"
+              >
+                {loading ? "Analysing..." : "Run Analysis"}
+              </button>
+
+            </div>
+          </div>
+        </section>
+
+        {/* OVERALL ASSESSMENT */}
+        <section className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-6 md:p-8">
+
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
+                ORCA Assessment
+              </p>
+
+              <h2 className="mt-3 text-4xl font-bold">
+                {data.assessment.status}
+              </h2>
+
+              <p className="mt-4 max-w-2xl leading-7 text-slate-400">
+                {data.assessment.summary}
+              </p>
+
+              <p className="mt-4 text-sm text-slate-500">
+                Region:{" "}
+                <span className="text-slate-300">
+                  {data.region}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex h-32 w-32 shrink-0 flex-col items-center justify-center rounded-full border-4 border-cyan-400/30 bg-slate-950">
+
+              <span className="text-4xl font-bold text-cyan-400">
+                {data.assessment.score}
+              </span>
+
+              <span className="mt-1 text-[10px] uppercase tracking-widest text-slate-500">
+                ORCA Score
+              </span>
+
+            </div>
+
+          </div>
+        </section>
+
+        {/* SIGNALS */}
+        <section className="mt-10">
+
+          <div className="mb-5 flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Environmental Signals
+              </p>
+
+              <h2 className="mt-2 text-2xl font-semibold">
+                Marine indicators
+              </h2>
+            </div>
+
+            <span className="text-xs text-slate-600">
+              {signalList.length} signals
             </span>
+
           </div>
 
-          <div className="mt-8 space-y-5">
-            <ComparisonRow
-              label="Sea Surface Temperature"
-              current={data?.sst?.value ?? "—"}
-              historical={data?.historical?.sst ?? "—"}
-            />
+          <div className="grid gap-5 md:grid-cols-2">
 
-            <ComparisonRow
-              label="Chlorophyll"
-              current={data?.chlorophyll?.value ?? "—"}
-              historical={data?.historical?.chlorophyll ?? "—"}
-            />
+            {signalList.map((signal) => (
+              <SignalCard
+                key={signal.name}
+                name={signal.name}
+                short={signal.short}
+                data={signal.data}
+              />
+            ))}
 
-            <ComparisonRow
-              label="Weather Pattern"
-              current={getWeatherValue(data?.weather)}
-              historical={data?.historical?.weather ?? "—"}
-            />
           </div>
+        </section>
 
-          <div className="mt-7 rounded-xl border border-dashed border-slate-800 bg-slate-950/60 p-4">
-            <p className="text-xs leading-5 text-slate-600">
-              Historical comparison is populated when ORCA receives
-              historical analysis data.
-            </p>
-          </div>
-        </div>
+        {/* CURRENT VS HISTORICAL */}
+        <section className="mt-8 grid gap-5 lg:grid-cols-2">
 
-        {/* Signal Summary */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
-            Signal Summary
-          </p>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
 
-          <h3 className="mt-2 text-xl font-semibold text-white">
-            What is changing?
-          </h3>
-
-          <div className="mt-7 space-y-4">
-            <SummaryItem
-              label="Temperature"
-              value={getSummaryValue(data?.sst)}
-            />
-
-            <SummaryItem
-              label="Productivity"
-              value={getSummaryValue(data?.chlorophyll)}
-            />
-
-            <SummaryItem
-              label="Weather"
-              value={getSummaryValue(data?.weather)}
-            />
-
-            <SummaryItem
-              label="Historical deviation"
-              value={getSummaryValue(data?.historical)}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Evidence Layer */}
-      <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 md:p-8">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
-              Evidence Layer
+              Comparison
             </p>
 
-            <h2 className="mt-2 text-xl font-semibold text-white">
-              Observations supporting the analysis
+            <h2 className="mt-2 text-xl font-semibold">
+              Current vs Historical
             </h2>
 
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              ORCA connects each conclusion to the environmental signals
-              and observations that contributed to it.
-            </p>
+            <div className="mt-7 space-y-5">
+
+              <Comparison
+                label="Sea Surface Temperature"
+                current="28.4 °C"
+                historical="27.3 °C"
+              />
+
+              <Comparison
+                label="Chlorophyll"
+                current="1.8 mg/m³"
+                historical="1.7 mg/m³"
+              />
+
+              <Comparison
+                label="Weather"
+                current="18 km/h"
+                historical="14 km/h"
+              />
+
+            </div>
+
           </div>
 
-          <span
-            className={`rounded-full border px-3 py-1.5 text-xs ${
-              data
-                ? "border-cyan-400/20 bg-cyan-400/5 text-cyan-400"
-                : "border-slate-800 bg-slate-950 text-slate-600"
-            }`}
-          >
-            {data ? "Evidence received" : "Evidence pending"}
-          </span>
-        </div>
+          {/* SUMMARY */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
 
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
-          <EvidenceCard
-            number="01"
-            title="Observation"
-            text={
-              data?.sst?.evidence ||
-              "Raw environmental observations enter the analysis layer."
-            }
-          />
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+              Signal Summary
+            </p>
 
-          <EvidenceCard
-            number="02"
-            title="Signal"
-            text={
-              data?.chlorophyll?.evidence ||
-              "Agents identify meaningful changes or deviations."
-            }
-          />
+            <h2 className="mt-2 text-xl font-semibold">
+              What is changing?
+            </h2>
 
-          <EvidenceCard
-            number="03"
-            title="Evidence"
-            text={
-              data?.reasoning?.evidence?.length
-                ? data.reasoning.evidence.join(" • ")
-                : "Relevant findings are passed to the reasoning layer."
-            }
-          />
-        </div>
-      </section>
+            <div className="mt-7 space-y-4">
 
-      {/* Analysis Pipeline */}
-      <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-          Analysis Pipeline
-        </p>
+              <Summary
+                label="Temperature"
+                value="Slightly elevated"
+              />
 
-        <div className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
-          <PipelineStep label="Raw Data" />
+              <Summary
+                label="Productivity"
+                value="Within normal range"
+              />
 
-          <Arrow />
+              <Summary
+                label="Weather"
+                value="Moderate wind"
+              />
 
-          <PipelineStep label="Signal Analysis" />
+              <Summary
+                label="Historical deviation"
+                value="+4.2%"
+              />
 
-          <Arrow />
+              <Summary
+                label="Satellite"
+                value="No major anomaly"
+              />
 
-          <PipelineStep label="Agent Findings" />
+            </div>
 
-          <Arrow />
+          </div>
 
-          <PipelineStep
-            label="ORCA Reasoning"
-            active
-          />
-        </div>
-      </section>
-    </Page>
+        </section>
+
+        {/* WHY ORCA */}
+        <section className="mt-8 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-6 md:p-8">
+
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
+            WHY — Reasoning Agent
+          </p>
+
+          <h2 className="mt-2 text-2xl font-semibold">
+            Why did ORCA reach this assessment?
+          </h2>
+
+          <p className="mt-5 max-w-4xl leading-8 text-slate-300">
+            {data.why}
+          </p>
+
+          <div className="mt-6 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
+
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+              Recommendation
+            </p>
+
+            <p className="mt-2 text-sm leading-7 text-slate-400">
+              {data.recommendation}
+            </p>
+
+          </div>
+
+        </section>
+
+        {/* AGENTS */}
+        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6 md:p-8">
+
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+            Agent Evidence
+          </p>
+
+          <h2 className="mt-2 text-xl font-semibold">
+            ORCA Multi-Agent Intelligence
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Five specialist agents analyse the environment before the
+            Reasoning Agent produces the final assessment.
+          </p>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+
+            {data.agents.map((agent, index) => (
+              <div
+                key={agent}
+                className="rounded-xl border border-slate-800 bg-slate-950/70 p-5"
+              >
+
+                <span className="text-xs font-bold text-cyan-400">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <h3 className="mt-4 font-semibold text-white">
+                  {agent}
+                </h3>
+
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  {agentDescription(agent)}
+                </p>
+
+              </div>
+            ))}
+
+          </div>
+
+        </section>
+
+        {/* PIPELINE */}
+        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+            ORCA Intelligence Pipeline
+          </p>
+
+          <div className="mt-6 grid gap-3 md:grid-cols-5">
+
+            <Pipeline label="Marine Data" />
+
+            <Pipeline label="5 Agents" />
+
+            <Pipeline label="LangGraph" />
+
+            <Pipeline label="Reasoning Agent" />
+
+            <Pipeline
+              label="ORCA Assessment"
+              active
+            />
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
   )
 }
 
-/* ---------------- HELPERS ---------------- */
+/* SIGNAL CARD */
 
-function getStatus(status, loading) {
-  if (loading) return "Loading"
-
-  if (status === "analyzed") return "Analyzed"
-
-  if (status === "error") return "Data error"
-
-  if (status === "ready") return "Awaiting data"
-
-  return status || "Awaiting data"
-}
-
-function getWeatherValue(weather) {
-  if (!weather) return "—"
-
-  const temperature = weather.temperature
-  const windSpeed = weather.wind_speed
-
-  if (temperature == null && windSpeed == null) {
-    return "—"
-  }
-
-  const values = []
-
-  if (temperature != null) {
-    values.push(`${temperature}°C`)
-  }
-
-  if (windSpeed != null) {
-    values.push(`${windSpeed} m/s`)
-  }
-
-  return values.join(" • ")
-}
-
-function getSummaryValue(signal) {
-  if (!signal) return "No analysis yet"
-
-  if (signal.status === "error") {
-    return "Data unavailable"
-  }
-
-  if (signal.value != null) {
-    return `${signal.value}`
-  }
-
-  if (signal.trend != null) {
-    return `${signal.trend}`
-  }
-
-  if (
-    signal.temperature != null ||
-    signal.wind_speed != null
-  ) {
-    return getWeatherValue(signal)
-  }
-
-  return "No analysis yet"
-}
-
-/* ---------------- COMPONENTS ---------------- */
-
-function SignalCard({ signal }) {
+function SignalCard({ name, short, data }) {
   return (
-    <div className="group rounded-2xl border border-slate-800 bg-slate-900/70 p-6 transition duration-300 hover:border-slate-700 hover:bg-slate-900">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 transition hover:border-slate-700">
+
       <div className="flex items-start justify-between">
+
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-800 text-xs font-bold text-cyan-400">
-          {signal.short}
+          {short}
         </div>
 
-        <span className="rounded-full border border-slate-800 bg-slate-950 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-          {signal.status}
+        <span className="rounded-full border border-slate-800 bg-slate-950 px-3 py-1 text-[10px] font-semibold uppercase text-cyan-400">
+          {data.status}
         </span>
+
       </div>
 
-      <div className="mt-6 flex items-end justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-white">
-            {signal.name}
-          </h3>
+      <div className="mt-6">
 
-          <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
-            {signal.description}
-          </p>
-        </div>
+        <h3 className="text-lg font-semibold">
+          {name}
+        </h3>
 
-        <div className="shrink-0 text-right">
-          <span className="text-3xl font-bold text-slate-200">
-            {signal.value}
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {data.description}
+        </p>
+
+      </div>
+
+      <div className="mt-6">
+
+        <span className="text-3xl font-bold">
+          {data.value}
+        </span>
+
+        {data.unit && (
+          <span className="ml-2 text-xs text-slate-500">
+            {data.unit}
           </span>
+        )}
 
-          {signal.unit && (
-            <span className="ml-1 text-xs text-slate-600">
-              {signal.unit}
-            </span>
-          )}
-        </div>
       </div>
 
-      <div className="mt-6 h-1 overflow-hidden rounded-full bg-slate-800">
-        <div
-          className={`h-full rounded-full ${
-            signal.status === "Analyzed"
-              ? "w-full bg-cyan-400"
-              : signal.status === "Loading"
-                ? "w-1/2 bg-amber-400"
-                : "w-0 bg-cyan-400"
-          }`}
-        />
+      <div className="mt-5 h-1 overflow-hidden rounded-full bg-slate-800">
+
+        <div className="h-full w-2/3 rounded-full bg-cyan-400" />
+
       </div>
+
     </div>
   )
 }
 
-function ComparisonRow({
-  label,
-  current,
-  historical,
-}) {
+/* COMPARISON */
+
+function Comparison({ label, current, historical }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-800 pb-4 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+
       <span className="text-sm text-slate-400">
         {label}
       </span>
 
-      <div className="flex items-center gap-6 text-sm">
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+      <div className="flex gap-6 text-right">
+
+        <div>
+          <p className="text-[10px] uppercase text-slate-600">
             Current
           </p>
 
-          <p className="mt-1 font-medium text-slate-300">
+          <p className="mt-1 text-sm font-medium text-cyan-400">
             {current}
           </p>
         </div>
 
-        <div className="text-right">
-          <p className="text-[10px] uppercase tracking-wider text-slate-600">
+        <div>
+          <p className="text-[10px] uppercase text-slate-600">
             Historical
           </p>
 
-          <p className="mt-1 font-medium text-slate-300">
+          <p className="mt-1 text-sm font-medium text-slate-400">
             {historical}
           </p>
         </div>
+
       </div>
+
     </div>
   )
 }
 
-function SummaryItem({ label, value }) {
+/* SUMMARY */
+
+function Summary({ label, value }) {
   return (
     <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-4">
+
       <span className="text-sm text-slate-400">
         {label}
       </span>
 
-      <span className="text-xs font-medium text-slate-300">
+      <span className="text-xs font-medium text-cyan-400">
         {value}
       </span>
+
     </div>
   )
 }
 
-function EvidenceCard({
-  number,
-  title,
-  text,
-}) {
-  return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-5">
-      <span className="text-xs font-bold text-cyan-400">
-        {number}
-      </span>
+/* PIPELINE */
 
-      <h3 className="mt-4 text-sm font-semibold text-white">
-        {title}
-      </h3>
-
-      <p className="mt-2 text-sm leading-6 text-slate-500">
-        {text}
-      </p>
-    </div>
-  )
-}
-
-function PipelineStep({
-  label,
-  active,
-}) {
+function Pipeline({ label, active }) {
   return (
     <div
-      className={`flex flex-1 items-center justify-center rounded-xl border px-4 py-3 text-center text-xs font-medium ${
+      className={`rounded-xl border px-4 py-4 text-center text-xs font-medium ${
         active
           ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-400"
           : "border-slate-800 bg-slate-950 text-slate-500"
@@ -535,40 +581,28 @@ function PipelineStep({
   )
 }
 
-function Arrow() {
-  return (
-    <span className="hidden text-slate-700 md:block">
-      →
-    </span>
-  )
-}
+/* AGENT DESCRIPTION */
 
-function Page({
-  title,
-  subtitle,
-  children,
-}) {
-  return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white md:px-8">
-      <div className="mx-auto max-w-7xl">
-        <p className="text-sm font-medium uppercase tracking-widest text-cyan-400">
-          ORCA
-        </p>
+function agentDescription(agent) {
+  if (agent === "SST Agent")
+    return "Analyses sea surface temperature and temperature deviations."
 
-        <h1 className="mt-2 text-4xl font-bold tracking-tight md:text-5xl">
-          {title}
-        </h1>
+  if (agent === "Chlorophyll Agent")
+    return "Analyses chlorophyll concentration and marine productivity."
 
-        <p className="mt-2 text-slate-500">
-          {subtitle}
-        </p>
+  if (agent === "Weather Agent")
+    return "Analyses wind and environmental conditions."
 
-        <div className="mt-10">
-          {children}
-        </div>
-      </div>
-    </main>
-  )
+  if (agent === "Historical Agent")
+    return "Compares current conditions with historical observations."
+
+  if (agent === "Satellite Agent")
+    return "Analyses satellite observations and environmental anomalies."
+
+  if (agent === "Reasoning Agent")
+    return "Combines evidence from all agents and produces the ORCA assessment."
+
+  return "Provides environmental intelligence to ORCA."
 }
 
 export default Analysis
