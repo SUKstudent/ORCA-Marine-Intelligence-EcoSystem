@@ -1,5 +1,87 @@
 import { useState } from "react"
 
+const regionData = {
+  "Arabian Sea": {
+    sst: 28.4,
+    chlorophyll: 1.8,
+    weather: 18,
+    historical: "+4.2%",
+    satellite: "Normal",
+    status: "WATCH",
+    score: 68,
+  },
+
+  "Bay of Bengal": {
+    sst: 29.1,
+    chlorophyll: 2.1,
+    weather: 22,
+    historical: "+5.1%",
+    satellite: "Moderate",
+    status: "WATCH",
+    score: 64,
+  },
+
+  "Indian Ocean": {
+    sst: 27.8,
+    chlorophyll: 1.9,
+    weather: 16,
+    historical: "+2.8%",
+    satellite: "Normal",
+    status: "STABLE",
+    score: 78,
+  },
+
+  "Pacific Ocean": {
+    sst: 26.7,
+    chlorophyll: 1.5,
+    weather: 20,
+    historical: "+3.1%",
+    satellite: "Normal",
+    status: "STABLE",
+    score: 76,
+  },
+
+  "Atlantic Ocean": {
+    sst: 25.9,
+    chlorophyll: 1.6,
+    weather: 21,
+    historical: "+3.8%",
+    satellite: "Moderate",
+    status: "WATCH",
+    score: 71,
+  },
+
+  "Mediterranean Sea": {
+    sst: 24.8,
+    chlorophyll: 1.2,
+    weather: 14,
+    historical: "+2.4%",
+    satellite: "Normal",
+    status: "STABLE",
+    score: 82,
+  },
+
+  "Arctic Ocean": {
+    sst: -1.2,
+    chlorophyll: 0.7,
+    weather: 25,
+    historical: "+6.3%",
+    satellite: "Changing",
+    status: "MONITOR",
+    score: 59,
+  },
+
+  "Southern Ocean": {
+    sst: 3.8,
+    chlorophyll: 1.1,
+    weather: 28,
+    historical: "+3.6%",
+    satellite: "Normal",
+    status: "MONITOR",
+    score: 67,
+  },
+}
+
 const demoData = {
   region: "Arabian Sea",
 
@@ -73,6 +155,53 @@ function Analysis() {
   const [data, setData] = useState(demoData)
   const [loading, setLoading] = useState(false)
 
+  const selectRegion = (selectedRegion) => {
+    const selected = regionData[selectedRegion]
+
+    setRegion(selectedRegion)
+
+    setData({
+      ...demoData,
+
+      region: selectedRegion,
+
+      assessment: {
+        ...demoData.assessment,
+        status: selected.status,
+        score: selected.score,
+      },
+
+      signals: {
+        ...demoData.signals,
+
+        sst: {
+          ...demoData.signals.sst,
+          value: selected.sst,
+        },
+
+        chlorophyll: {
+          ...demoData.signals.chlorophyll,
+          value: selected.chlorophyll,
+        },
+
+        weather: {
+          ...demoData.signals.weather,
+          value: selected.weather,
+        },
+
+        historical: {
+          ...demoData.signals.historical,
+          value: selected.historical,
+        },
+
+        satellite: {
+          ...demoData.signals.satellite,
+          value: selected.satellite,
+        },
+      },
+    })
+  }
+
   const runAnalysis = async () => {
     setLoading(true)
 
@@ -94,15 +223,16 @@ function Analysis() {
       const result = await response.json()
 
       setData({
-        ...demoData,
+        ...data,
         ...result,
       })
     } catch (error) {
-      console.log("Backend not connected. Showing demo data.")
-      setData({
-        ...demoData,
+      console.log("Backend unavailable. Showing demo analysis.")
+
+      setData((previous) => ({
+        ...previous,
         region,
-      })
+      }))
     }
 
     setLoading(false)
@@ -114,21 +244,25 @@ function Analysis() {
       short: "SST",
       data: data.signals.sst,
     },
+
     {
       name: "Chlorophyll",
       short: "CHL",
       data: data.signals.chlorophyll,
     },
+
     {
       name: "Weather Conditions",
       short: "WX",
       data: data.signals.weather,
     },
+
     {
       name: "Historical Pattern",
       short: "HIS",
       data: data.signals.historical,
     },
+
     {
       name: "Satellite Observation",
       short: "SAT",
@@ -137,11 +271,11 @@ function Analysis() {
   ]
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white md:px-8">
+    <main className="min-h-screen bg-slate-950 px-5 py-10 text-white md:px-8 md:py-12">
       <div className="mx-auto max-w-7xl">
 
         {/* HEADER */}
-        <div>
+        <section>
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-400">
             ORCA
           </p>
@@ -150,14 +284,68 @@ function Analysis() {
             Marine Analysis
           </h1>
 
-          <p className="mt-3 text-slate-500">
+          <p className="mt-3 max-w-2xl text-slate-500">
             Environmental signals analysed by the ORCA intelligence layer.
           </p>
-        </div>
+        </section>
+
+        {/* REGION SELECTOR */}
+        <section className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 md:p-6">
+
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+              Marine Region
+            </p>
+
+            <h2 className="text-xl font-semibold">
+              Select an ocean region
+            </h2>
+
+            <p className="text-sm text-slate-500">
+              Choose a region to view its ORCA environmental analysis.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-2 md:grid-cols-2">
+
+            {Object.keys(regionData).map((name) => (
+              <label
+                key={name}
+                className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-4 transition ${
+                  region === name
+                    ? "border-cyan-400/40 bg-cyan-400/10"
+                    : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
+                }`}
+              >
+                <span
+                  className={`text-sm ${
+                    region === name
+                      ? "font-semibold text-cyan-400"
+                      : "text-slate-300"
+                  }`}
+                >
+                  {name}
+                </span>
+
+                <input
+                  type="radio"
+                  name="marine-region"
+                  value={name}
+                  checked={region === name}
+                  onChange={() => selectRegion(name)}
+                  className="h-5 w-5 accent-cyan-400"
+                />
+              </label>
+            ))}
+
+          </div>
+
+        </section>
 
         {/* RUN ANALYSIS */}
-        <section className="mt-10 rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/70 p-5 md:p-6">
+
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
@@ -165,34 +353,24 @@ function Analysis() {
               </p>
 
               <h2 className="mt-2 text-xl font-semibold">
-                Analyse Marine Region
+                Ready to analyse {region}
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
-                Run the ORCA multi-agent analysis pipeline.
+                Run the ORCA multi-agent intelligence pipeline.
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              onClick={runAnalysis}
+              disabled={loading}
+              className="rounded-xl bg-cyan-400 px-7 py-3 font-bold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Analysing..." : "Run ORCA Analysis"}
+            </button>
 
-              <input
-                type="text"
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                placeholder="Enter marine region"
-                className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400"
-              />
-
-              <button
-                onClick={runAnalysis}
-                disabled={loading}
-                className="rounded-xl bg-cyan-400 px-6 py-3 text-sm font-bold text-slate-950 hover:bg-cyan-300 disabled:opacity-50"
-              >
-                {loading ? "Analysing..." : "Run Analysis"}
-              </button>
-
-            </div>
           </div>
+
         </section>
 
         {/* OVERALL ASSESSMENT */}
@@ -214,8 +392,8 @@ function Analysis() {
               </p>
 
               <p className="mt-4 text-sm text-slate-500">
-                Region:{" "}
-                <span className="text-slate-300">
+                Selected region:{" "}
+                <span className="font-semibold text-slate-300">
                   {data.region}
                 </span>
               </p>
@@ -234,27 +412,20 @@ function Analysis() {
             </div>
 
           </div>
+
         </section>
 
         {/* SIGNALS */}
         <section className="mt-10">
 
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Environmental Signals
+            </p>
 
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                Environmental Signals
-              </p>
-
-              <h2 className="mt-2 text-2xl font-semibold">
-                Marine indicators
-              </h2>
-            </div>
-
-            <span className="text-xs text-slate-600">
-              {signalList.length} signals
-            </span>
-
+            <h2 className="mt-2 text-2xl font-semibold">
+              Marine indicators
+            </h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -269,11 +440,13 @@ function Analysis() {
             ))}
 
           </div>
+
         </section>
 
-        {/* CURRENT VS HISTORICAL */}
+        {/* COMPARISON + SUMMARY */}
         <section className="mt-8 grid gap-5 lg:grid-cols-2">
 
+          {/* CURRENT VS HISTORICAL */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
 
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
@@ -288,19 +461,19 @@ function Analysis() {
 
               <Comparison
                 label="Sea Surface Temperature"
-                current="28.4 °C"
+                current={`${data.signals.sst.value} ${data.signals.sst.unit}`}
                 historical="27.3 °C"
               />
 
               <Comparison
                 label="Chlorophyll"
-                current="1.8 mg/m³"
+                current={`${data.signals.chlorophyll.value} ${data.signals.chlorophyll.unit}`}
                 historical="1.7 mg/m³"
               />
 
               <Comparison
                 label="Weather"
-                current="18 km/h"
+                current={`${data.signals.weather.value} ${data.signals.weather.unit}`}
                 historical="14 km/h"
               />
 
@@ -338,12 +511,12 @@ function Analysis() {
 
               <Summary
                 label="Historical deviation"
-                value="+4.2%"
+                value={data.signals.historical.value}
               />
 
               <Summary
                 label="Satellite"
-                value="No major anomaly"
+                value={data.signals.satellite.value}
               />
 
             </div>
@@ -392,8 +565,8 @@ function Analysis() {
             ORCA Multi-Agent Intelligence
           </h2>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Five specialist agents analyse the environment before the
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Five specialist agents analyse marine signals before the
             Reasoning Agent produces the final assessment.
           </p>
 
@@ -500,9 +673,7 @@ function SignalCard({ name, short, data }) {
       </div>
 
       <div className="mt-5 h-1 overflow-hidden rounded-full bg-slate-800">
-
         <div className="h-full w-2/3 rounded-full bg-cyan-400" />
-
       </div>
 
     </div>
@@ -584,23 +755,29 @@ function Pipeline({ label, active }) {
 /* AGENT DESCRIPTION */
 
 function agentDescription(agent) {
-  if (agent === "SST Agent")
+  if (agent === "SST Agent") {
     return "Analyses sea surface temperature and temperature deviations."
+  }
 
-  if (agent === "Chlorophyll Agent")
+  if (agent === "Chlorophyll Agent") {
     return "Analyses chlorophyll concentration and marine productivity."
+  }
 
-  if (agent === "Weather Agent")
+  if (agent === "Weather Agent") {
     return "Analyses wind and environmental conditions."
+  }
 
-  if (agent === "Historical Agent")
+  if (agent === "Historical Agent") {
     return "Compares current conditions with historical observations."
+  }
 
-  if (agent === "Satellite Agent")
+  if (agent === "Satellite Agent") {
     return "Analyses satellite observations and environmental anomalies."
+  }
 
-  if (agent === "Reasoning Agent")
+  if (agent === "Reasoning Agent") {
     return "Combines evidence from all agents and produces the ORCA assessment."
+  }
 
   return "Provides environmental intelligence to ORCA."
 }
