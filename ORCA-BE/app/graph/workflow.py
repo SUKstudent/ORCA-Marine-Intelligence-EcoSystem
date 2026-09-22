@@ -77,40 +77,28 @@ def run_orca(region: str) -> dict:
         "region": region
     }
 
-    # -----------------------------------------
-    # 1. ENVIRONMENTAL AGENTS
-    # -----------------------------------------
-
+    # 1. SST Agent
     state = sst_agent(state)
 
+    # 2. Chlorophyll Agent
     state = chlorophyll_agent(state)
 
+    # 3. Weather Agent
     state = weather_agent(state)
 
+    # 4. Historical Agent
     state = historical_agent(state)
 
+    # 5. Satellite Agent
     state = satellite_agent(state)
 
-    # -----------------------------------------
-    # 2. REASONING AGENT
-    # -----------------------------------------
-
+    # 6. Reasoning Agent
     state = reasoning_agent(state)
 
-    # -----------------------------------------
-    # 3. ASSESSMENT AGENT
-    # -----------------------------------------
-
+    # 7. Assessment Agent
     state = assessment_agent(state)
 
-    # -----------------------------------------
-    # 4. EVIDENCE AGENT
-    # -----------------------------------------
-
+    # 8. Evidence Agent
     state = evidence_agent(state)
-
-    # -----------------------------------------
-    # FINAL ORCA STATE
-    # -----------------------------------------
 
     return state
