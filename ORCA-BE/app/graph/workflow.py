@@ -4,7 +4,8 @@ from app.agents.weather_agent import weather_agent
 from app.agents.historical_agent import historical_agent
 from app.agents.satellite_agent import satellite_agent
 from app.agents.reasoning_agent import reasoning_agent
-
+from app.agents.assessment_agent import assessment_agent
+from app.agents.evidence_agent import evidence_agent
 
 def assessment_agent(state: dict) -> dict:
     """
@@ -72,46 +73,44 @@ def evidence_agent(state: dict) -> dict:
 
 def run_orca(region: str) -> dict:
 
-    state = {"region": region}
+    state = {
+        "region": region
+    }
 
-    # --------------------------------------------------
-    # DATA + AI AGENT PIPELINE
-    # --------------------------------------------------
+    # -----------------------------------------
+    # 1. ENVIRONMENTAL AGENTS
+    # -----------------------------------------
 
-    # 1. SST
     state = sst_agent(state)
 
-    # 2. Chlorophyll
     state = chlorophyll_agent(state)
 
-    # 3. Weather
     state = weather_agent(state)
 
-    # 4. Historical
     state = historical_agent(state)
 
-    # 5. Satellite
     state = satellite_agent(state)
 
-    # --------------------------------------------------
-    # REASONING
-    # --------------------------------------------------
+    # -----------------------------------------
+    # 2. REASONING AGENT
+    # -----------------------------------------
 
-    # 6. Reasoning Agent
     state = reasoning_agent(state)
 
-    # --------------------------------------------------
-    # ASSESSMENT
-    # --------------------------------------------------
+    # -----------------------------------------
+    # 3. ASSESSMENT AGENT
+    # -----------------------------------------
 
-    # 7. Assessment Agent
     state = assessment_agent(state)
 
-    # --------------------------------------------------
-    # EVIDENCE
-    # --------------------------------------------------
+    # -----------------------------------------
+    # 4. EVIDENCE AGENT
+    # -----------------------------------------
 
-    # 8. Evidence Agent
     state = evidence_agent(state)
+
+    # -----------------------------------------
+    # FINAL ORCA STATE
+    # -----------------------------------------
 
     return state
