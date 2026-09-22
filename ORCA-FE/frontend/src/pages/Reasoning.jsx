@@ -180,108 +180,65 @@ function Reasoning() {
 
       {/* Reasoning Flow */}
       <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 md:p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
-              Reasoning Pipeline
-            </p>
-
-            <h2 className="mt-2 text-xl font-semibold text-white">
-              How ORCA reaches a conclusion
-            </h2>
-          </div>
-
-          <span className="hidden rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-600 md:block">
-            5 → 1 → 1 → 1
-          </span>
-        </div>
-
-        <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_80px_1fr] lg:items-center">
-          {/* Agent Findings */}
-          <div className="space-y-3">
-            {agentFindings.map((agent) => (
-              <div
-                key={agent.name}
-                className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-950/70 p-4"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-[10px] font-bold text-cyan-400">
-                  {agent.short}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-white">
-                    {agent.name}
-                  </p>
-
-                  <p className="mt-1 truncate text-xs text-slate-500">
-                    {agent.finding}
-                  </p>
-                </div>
-
-                <span
-                  className={`rounded-full border px-2 py-1 text-[9px] uppercase tracking-wider ${
-                    agent.status === "Analyzed"
-                      ? "border-cyan-400/20 text-cyan-400"
-                      : "border-slate-800 text-slate-600"
-                  }`}
-                >
-                  {agent.status}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Connector */}
-          <div className="hidden flex-col items-center justify-center lg:flex">
-            <div className="h-px w-full bg-slate-700" />
-
-            <div className="my-2 flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/20 bg-cyan-400/10 text-cyan-400">
-              →
-            </div>
-
-            <div className="h-px w-full bg-slate-700" />
-          </div>
-
-          {/* Reasoning Core */}
-          <div className="relative overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-400/10 via-slate-900 to-slate-950 p-6">
-            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-cyan-400/5 blur-2xl" />
-
-            <div className="relative">
-              <div className="flex items-center justify-between">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-cyan-400 text-sm font-bold text-slate-950">
-                  ORCA
-                </div>
-
-                <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-400">
-                  Core
-                </span>
-              </div>
-
-              <h3 className="mt-6 text-xl font-semibold text-white">
-                Reasoning Agent
-              </h3>
-
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                Cross-checks findings, identifies relationships between
-                signals, and builds an evidence-based marine assessment.
-              </p>
-
-              <div className="mt-6 space-y-2">
-                <ReasoningStep number="01" text="Collect agent findings" />
-                <ReasoningStep number="02" text="Cross-check signals" />
-                <ReasoningStep number="03" text="Evaluate evidence" />
-                <ReasoningStep number="04" text="Generate assessment" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Evidence + Assessment */}
+              {/* Assessment + Evidence */}
       <section className="mt-8 grid gap-5 lg:grid-cols-2">
-        {/* Evidence Matrix */}
+
+        {/* ORCA Assessment */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+            ORCA Assessment
+          </p>
+
+          <div className="mt-6 rounded-xl border border-dashed border-slate-800 bg-slate-950/70 p-6 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-slate-800 bg-slate-900">
+              <span className="text-2xl text-slate-700">?</span>
+            </div>
+
+            <h3 className="mt-5 text-lg font-semibold text-slate-500">
+              Assessment unavailable
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+              Run an ORCA analysis to provide agent findings to the reasoning
+              layer.
+            </p>
+          </div>
+        </div>
+
+
+        {/* Evidence First */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400">
+            Explainable Intelligence
+          </p>
+
+          <h3 className="mt-2 text-xl font-semibold text-white">
+            Why did ORCA reach this conclusion?
+          </h3>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Every assessment can be traced back to the observations and
+            agent findings that contributed to the reasoning process.
+          </p>
+
+          <div className="mt-6 flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 px-4 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-800 text-cyan-400">
+              ?
+            </div>
+
+            <div>
+              <p className="text-xs font-semibold text-slate-300">
+                Evidence first
+              </p>
+
+              <p className="mt-0.5 text-[11px] text-slate-600">
+                No assessment yet
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
             Evidence Matrix
           </p>
 
